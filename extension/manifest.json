@@ -1,0 +1,27 @@
+{
+  "manifest_version": 3,
+  "name": "ai-privacy-shield",
+  "description": "On-device protection against accidental sensitive-data leaks to AI chat tools.",
+  "version": "0.1.0",
+  "permissions": ["storage"],
+  "host_permissions": [
+    "https://chat.openai.com/*",
+    "https://claude.ai/*",
+    "https://gemini.google.com/*",
+    "https://www.perplexity.ai/*"
+  ],
+  "content_scripts": [
+    {
+      "matches": [
+        "https://chat.openai.com/*",
+        "https://claude.ai/*",
+        "https://gemini.google.com/*",
+        "https://www.perplexity.ai/*"
+      ],
+      "js": ["content/interceptor.js"]
+    }
+  ],
+  "background": {
+    "service_worker": "background/storage.js"
+  }
+}
