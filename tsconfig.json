@@ -12,7 +12,9 @@
     "rootDir": ".",
 
     "esModuleInterop": true,
-    "forceConsistentCasingInFileNames": true
+    "forceConsistentCasingInFileNames": true,
+
+    "types": ["chrome"]
   },
   "include": ["extension/**/*"]
 }
