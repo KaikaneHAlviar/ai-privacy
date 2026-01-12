@@ -1,6 +1,6 @@
 // extension/ui/modal.ts
 
-export type ModalChoice = "redact" | "continue" | "cancel";
+export type ModalChoice = "continue" | "redact";
 export type ModalRiskLevel = "ALLOW" | "WARN" | "BLOCK";
 
 export interface WarningModalArgs {
@@ -188,7 +188,7 @@ export function showWarningModal(args: WarningModalArgs): Promise<ModalChoice> {
     // Clicking outside cancels (safer default)
     overlay.addEventListener("mousedown", (e) => {
       if (e.target === overlay) {
-        cleanup("cancel");
+        cleanup("continue");
       }
     });
 
@@ -248,11 +248,6 @@ export function showWarningModal(args: WarningModalArgs): Promise<ModalChoice> {
     const footer = document.createElement("div");
     footer.className = "apg-footer";
 
-    const btnCancel = document.createElement("button");
-    btnCancel.className = "apg-btn";
-    btnCancel.textContent = "Cancel";
-    btnCancel.addEventListener("click", () => cleanup("cancel"));
-
     const btnContinue = document.createElement("button");
     btnContinue.className = "apg-btn apg-btn-primary";
     btnContinue.textContent = "Continue anyway";
@@ -264,7 +259,6 @@ export function showWarningModal(args: WarningModalArgs): Promise<ModalChoice> {
     btnRedact.addEventListener("click", () => cleanup("redact"));
 
     // Order: safest actions are more prominent but not confusing
-    footer.appendChild(btnCancel);
     footer.appendChild(btnContinue);
     footer.appendChild(btnRedact);
 
@@ -278,13 +272,13 @@ export function showWarningModal(args: WarningModalArgs): Promise<ModalChoice> {
     const previouslyFocused = document.activeElement as HTMLElement | null;
 
     const focusables = getFocusable(modal);
-    const initialFocus = btnCancel; // safest default
+    const initialFocus = btnContinue; // safest default
     initialFocus.focus();
 
     function onKeyDown(e: KeyboardEvent) {
       if (e.key === "Escape") {
         e.preventDefault();
-        cleanup("cancel");
+        cleanup("continue");
         return;
       }
 
