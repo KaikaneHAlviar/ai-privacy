@@ -1,5 +1,5 @@
 type RiskLevel = "ALLOW" | "WARN" | "BLOCK";
-type ModalChoice = "redact" | "continue" | "cancel";
+type ModalChoice = "redact" | "continue";
 type PromptEventSource = "paste" | "send";
 
 type AnalyticsEvent = {
@@ -11,7 +11,7 @@ type AnalyticsEvent = {
     riskLevel: Exclude<RiskLevel, "ALLOW">; // only WARN/BLOCK are logged
     riskScore: number; // 0..1
     categories: string[]; // e.g. ["API_KEY","EMAIL"] (no content)
-    action: ModalChoice; // redact/continue/cancel
+    action: ModalChoice; // redact/continue
   };
 };
 
@@ -49,7 +49,7 @@ function defaultStore(): AnalyticsStoreV1 {
     warningsTotal: 0,
     byHost: {},
     byCategory: {},
-    byAction: { redact: 0, continue: 0, cancel: 0 },
+    byAction: { redact: 0, continue: 0 },
     bySource: { paste: 0, send: 0 },
     byRiskLevel: { WARN: 0, BLOCK: 0 },
     daily: {},

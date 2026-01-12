@@ -28,7 +28,7 @@ async function logAnalyticsEvent(args: {
   riskLevel: "WARN" | "BLOCK";
   riskScore: number;
   categories: string[];
-  action: "redact" | "continue" | "cancel";
+  action: "redact" | "continue";
 }) {
   try {
     await chrome.runtime.sendMessage({
@@ -213,7 +213,6 @@ async function handleTextSubmission(el: InputLike): Promise<boolean> {
 
     const { action, result } = await maybeWarn(text, "send");
   if (action === "allow" || action === "continue") return true;
-  if (action === "cancel") return false;
 
   // redact
   let redacted = text;
@@ -247,7 +246,7 @@ document.addEventListener(
     // (stopImmediatePropagation is safe here: we’re intentionally overriding)
     (e as any).stopImmediatePropagation?.();
 
-    if (action === "cancel") return;
+    if (action === "continue") return;
 
     let finalText = pastedText;
     if (action === "redact") {
