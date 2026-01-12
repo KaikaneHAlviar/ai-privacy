@@ -4,10 +4,13 @@
   "private": true,
   "type": "module",
   "scripts": {
+    "build": "node scripts/build.mjs && node scripts/copy-static.mjs",
+    "watch": "tsc -p tsconfig.json --watch",
     "typecheck": "tsc -p tsconfig.json --noEmit"
   },
   "devDependencies": {
     "@types/chrome": "^0.1.33",
+    "esbuild": "^0.27.2",
     "typescript": "^5.0.0"
   }
 }
