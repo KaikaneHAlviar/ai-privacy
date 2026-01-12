@@ -1,8 +1,9 @@
 // extension/ui/dashboard.ts
+// WARNING-ONLY version: no redaction, no text insertion
 
 import { EXPORT, STORAGE_KEYS, UI_LIMITS } from "../utils/constants";
 
-type ModalChoice = "redact" | "continue";
+type ModalChoice = "continue";
 type PromptEventSource = "paste" | "send";
 type WarnLevel = "WARN" | "BLOCK";
 
@@ -119,7 +120,6 @@ function renderDashboard(root: HTMLElement, store: AnalyticsStoreV1) {
 
   const totalsBody = el("div", {}, [
     kvRow("Warnings triggered", String(store.warningsTotal)),
-    kvRow("Actions: redact", String(store.byAction.redact ?? 0)),
     kvRow("Actions: continue", String(store.byAction.continue ?? 0)),
   ]);
 

@@ -1,6 +1,7 @@
 // extension/ui/modal.ts
+// WARNING-ONLY version: no redaction, no text insertion
 
-export type ModalChoice = "continue" | "redact";
+export type ModalChoice = "continue";
 export type ModalRiskLevel = "ALLOW" | "WARN" | "BLOCK";
 
 export interface WarningModalArgs {
@@ -250,17 +251,11 @@ export function showWarningModal(args: WarningModalArgs): Promise<ModalChoice> {
 
     const btnContinue = document.createElement("button");
     btnContinue.className = "apg-btn apg-btn-primary";
-    btnContinue.textContent = "Continue anyway";
+    btnContinue.textContent = "Got it";
     btnContinue.addEventListener("click", () => cleanup("continue"));
-
-    const btnRedact = document.createElement("button");
-    btnRedact.className = "apg-btn apg-btn-danger";
-    btnRedact.textContent = "Redact & continue";
-    btnRedact.addEventListener("click", () => cleanup("redact"));
 
     // Order: safest actions are more prominent but not confusing
     footer.appendChild(btnContinue);
-    footer.appendChild(btnRedact);
 
     modal.appendChild(header);
     modal.appendChild(body);

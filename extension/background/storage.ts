@@ -1,5 +1,8 @@
+// extension/background/storage.ts
+// WARNING-ONLY version: no redaction, no text insertion
+
 type RiskLevel = "ALLOW" | "WARN" | "BLOCK";
-type ModalChoice = "redact" | "continue";
+type ModalChoice = "continue";
 type PromptEventSource = "paste" | "send";
 
 type AnalyticsEvent = {
@@ -11,7 +14,7 @@ type AnalyticsEvent = {
     riskLevel: Exclude<RiskLevel, "ALLOW">; // only WARN/BLOCK are logged
     riskScore: number; // 0..1
     categories: string[]; // e.g. ["API_KEY","EMAIL"] (no content)
-    action: ModalChoice; // redact/continue
+    action: ModalChoice; // continue
   };
 };
 
@@ -49,7 +52,7 @@ function defaultStore(): AnalyticsStoreV1 {
     warningsTotal: 0,
     byHost: {},
     byCategory: {},
-    byAction: { redact: 0, continue: 0 },
+    byAction: { continue: 0 },
     bySource: { paste: 0, send: 0 },
     byRiskLevel: { WARN: 0, BLOCK: 0 },
     daily: {},
