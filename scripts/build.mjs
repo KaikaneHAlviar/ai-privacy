@@ -39,6 +39,13 @@ await build({
 
 await build({
   ...common,
+  entryPoints: ["extension/ui/modal.ts"],
+  outfile: "dist/extension/ui/modal.js",
+  format: "esm",
+});
+
+await build({
+  ...common,
   entryPoints: ["extension/popup.ts"],
   outfile: "dist/extension/popup.js",
   format: "esm",

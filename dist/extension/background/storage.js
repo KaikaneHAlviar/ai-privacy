@@ -15,7 +15,7 @@
       warningsTotal: 0,
       byHost: {},
       byCategory: {},
-      byAction: { redact: 0, continue: 0, cancel: 0 },
+      byAction: { continue: 0 },
       bySource: { paste: 0, send: 0 },
       byRiskLevel: { WARN: 0, BLOCK: 0 },
       daily: {}

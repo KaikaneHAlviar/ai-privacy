@@ -1,12 +1,11 @@
 // extension/ui/modal.ts
-const OVERLAY_ID = "__ai_privacy_guard_overlay__";
-const STYLE_ID = "__ai_privacy_guard_style__";
+var OVERLAY_ID = "__ai_privacy_guard_overlay__";
+var STYLE_ID = "__ai_privacy_guard_style__";
 function ensureStyles() {
-    if (document.getElementById(STYLE_ID))
-        return;
-    const style = document.createElement("style");
-    style.id = STYLE_ID;
-    style.textContent = `
+  if (document.getElementById(STYLE_ID)) return;
+  const style = document.createElement("style");
+  style.id = STYLE_ID;
+  style.textContent = `
     #${OVERLAY_ID} {
       position: fixed;
       inset: 0;
@@ -122,158 +121,145 @@ function ensureStyles() {
       color: rgba(245,247,255,0.8);
     }
   `;
-    document.head.appendChild(style);
+  document.head.appendChild(style);
 }
 function formatPercent01(x) {
-    const pct = Math.round(Math.max(0, Math.min(1, x)) * 100);
-    return `${pct}%`;
+  const pct = Math.round(Math.max(0, Math.min(1, x)) * 100);
+  return `${pct}%`;
 }
 function iconForLevel(level) {
-    if (level === "BLOCK")
-        return "⛔";
-    return "⚠️";
+  if (level === "BLOCK") return "\u26D4";
+  return "\u26A0\uFE0F";
 }
 function titleForLevel(level) {
-    if (level === "BLOCK")
-        return "Sensitive data likely detected";
-    return "Potential sensitive data detected";
+  if (level === "BLOCK") return "Sensitive data likely detected";
+  return "Potential sensitive data detected";
 }
 function subtitleForLevel(level) {
-    if (level === "BLOCK") {
-        return "This looks like high-risk content (e.g., private keys). Consider redacting before sending.";
-    }
-    return "Review what was detected before sending this to an AI tool.";
+  if (level === "BLOCK") {
+    return "This looks like high-risk content (e.g., private keys). Consider redacting before sending.";
+  }
+  return "Review what was detected before sending this to an AI tool.";
 }
 function removeExistingOverlay() {
-    const existing = document.getElementById(OVERLAY_ID);
-    if (existing)
-        existing.remove();
+  const existing = document.getElementById(OVERLAY_ID);
+  if (existing) existing.remove();
 }
 function getFocusable(container) {
-    const selectors = [
-        "button",
-        "[href]",
-        "input",
-        "select",
-        "textarea",
-        "[tabindex]:not([tabindex='-1'])",
-    ];
-    return Array.from(container.querySelectorAll(selectors.join(","))).filter((el) => !el.hasAttribute("disabled") && el.tabIndex !== -1);
+  const selectors = [
+    "button",
+    "[href]",
+    "input",
+    "select",
+    "textarea",
+    "[tabindex]:not([tabindex='-1'])"
+  ];
+  return Array.from(container.querySelectorAll(selectors.join(","))).filter(
+    (el) => !el.hasAttribute("disabled") && el.tabIndex !== -1
+  );
 }
-export function showWarningModal(args) {
-    ensureStyles();
-    removeExistingOverlay();
-    return new Promise((resolve) => {
-        var _a;
-        const overlay = document.createElement("div");
-        overlay.id = OVERLAY_ID;
-        // Clicking outside cancels (safer default)
-        overlay.addEventListener("mousedown", (e) => {
-            if (e.target === overlay) {
-                cleanup("cancel");
-            }
-        });
-        const modal = document.createElement("div");
-        modal.className = "apg-modal";
-        modal.setAttribute("role", "dialog");
-        modal.setAttribute("aria-modal", "true");
-        modal.setAttribute("aria-label", titleForLevel(args.riskLevel));
-        const header = document.createElement("div");
-        header.className = "apg-header";
-        const icon = document.createElement("div");
-        icon.className = "apg-icon";
-        icon.textContent = iconForLevel(args.riskLevel);
-        const headerText = document.createElement("div");
-        const title = document.createElement("p");
-        title.className = "apg-title";
-        title.textContent = titleForLevel(args.riskLevel);
-        const subtitle = document.createElement("p");
-        subtitle.className = "apg-subtitle";
-        subtitle.textContent = subtitleForLevel(args.riskLevel);
-        const pill = document.createElement("div");
-        pill.className = "apg-pill";
-        pill.textContent = `Risk confidence: ${formatPercent01(args.riskScore)} • Press `;
-        const kbd = document.createElement("span");
-        kbd.className = "apg-kbd";
-        kbd.textContent = "Esc";
-        pill.appendChild(kbd);
-        pill.appendChild(document.createTextNode(" to cancel"));
-        headerText.appendChild(title);
-        headerText.appendChild(subtitle);
-        headerText.appendChild(pill);
-        header.appendChild(icon);
-        header.appendChild(headerText);
-        const body = document.createElement("div");
-        body.className = "apg-body";
-        const list = document.createElement("ul");
-        list.className = "apg-list";
-        const explanation = ((_a = args.explanation) === null || _a === void 0 ? void 0 : _a.length) ? args.explanation : ["No details available."];
-        for (const line of explanation.slice(0, 6)) {
-            const li = document.createElement("li");
-            li.textContent = line;
-            list.appendChild(li);
-        }
-        body.appendChild(list);
-        const footer = document.createElement("div");
-        footer.className = "apg-footer";
-        const btnCancel = document.createElement("button");
-        btnCancel.className = "apg-btn";
-        btnCancel.textContent = "Cancel";
-        btnCancel.addEventListener("click", () => cleanup("cancel"));
-        const btnContinue = document.createElement("button");
-        btnContinue.className = "apg-btn apg-btn-primary";
-        btnContinue.textContent = "Continue anyway";
-        btnContinue.addEventListener("click", () => cleanup("continue"));
-        const btnRedact = document.createElement("button");
-        btnRedact.className = "apg-btn apg-btn-danger";
-        btnRedact.textContent = "Redact & continue";
-        btnRedact.addEventListener("click", () => cleanup("redact"));
-        // Order: safest actions are more prominent but not confusing
-        footer.appendChild(btnCancel);
-        footer.appendChild(btnContinue);
-        footer.appendChild(btnRedact);
-        modal.appendChild(header);
-        modal.appendChild(body);
-        modal.appendChild(footer);
-        overlay.appendChild(modal);
-        document.body.appendChild(overlay);
-        // Focus management
-        const previouslyFocused = document.activeElement;
-        const focusables = getFocusable(modal);
-        const initialFocus = btnCancel; // safest default
-        initialFocus.focus();
-        function onKeyDown(e) {
-            if (e.key === "Escape") {
-                e.preventDefault();
-                cleanup("cancel");
-                return;
-            }
-            // Simple focus trap
-            if (e.key === "Tab") {
-                const items = getFocusable(modal);
-                if (items.length === 0)
-                    return;
-                const first = items[0];
-                const last = items[items.length - 1];
-                const active = document.activeElement;
-                if (e.shiftKey && active === first) {
-                    e.preventDefault();
-                    last.focus();
-                }
-                else if (!e.shiftKey && active === last) {
-                    e.preventDefault();
-                    first.focus();
-                }
-            }
-        }
-        document.addEventListener("keydown", onKeyDown, true);
-        function cleanup(choice) {
-            document.removeEventListener("keydown", onKeyDown, true);
-            overlay.remove();
-            if (previouslyFocused && typeof previouslyFocused.focus === "function") {
-                previouslyFocused.focus();
-            }
-            resolve(choice);
-        }
+function showWarningModal(args) {
+  ensureStyles();
+  removeExistingOverlay();
+  return new Promise((resolve) => {
+    var _a;
+    const overlay = document.createElement("div");
+    overlay.id = OVERLAY_ID;
+    overlay.addEventListener("mousedown", (e) => {
+      if (e.target === overlay) {
+        cleanup("continue");
+      }
     });
+    const modal = document.createElement("div");
+    modal.className = "apg-modal";
+    modal.setAttribute("role", "dialog");
+    modal.setAttribute("aria-modal", "true");
+    modal.setAttribute("aria-label", titleForLevel(args.riskLevel));
+    const header = document.createElement("div");
+    header.className = "apg-header";
+    const icon = document.createElement("div");
+    icon.className = "apg-icon";
+    icon.textContent = iconForLevel(args.riskLevel);
+    const headerText = document.createElement("div");
+    const title = document.createElement("p");
+    title.className = "apg-title";
+    title.textContent = titleForLevel(args.riskLevel);
+    const subtitle = document.createElement("p");
+    subtitle.className = "apg-subtitle";
+    subtitle.textContent = subtitleForLevel(args.riskLevel);
+    const pill = document.createElement("div");
+    pill.className = "apg-pill";
+    pill.textContent = `Risk confidence: ${formatPercent01(args.riskScore)} \u2022 Press `;
+    const kbd = document.createElement("span");
+    kbd.className = "apg-kbd";
+    kbd.textContent = "Esc";
+    pill.appendChild(kbd);
+    pill.appendChild(document.createTextNode(" to cancel"));
+    headerText.appendChild(title);
+    headerText.appendChild(subtitle);
+    headerText.appendChild(pill);
+    header.appendChild(icon);
+    header.appendChild(headerText);
+    const body = document.createElement("div");
+    body.className = "apg-body";
+    const list = document.createElement("ul");
+    list.className = "apg-list";
+    const explanation = ((_a = args.explanation) == null ? void 0 : _a.length) ? args.explanation : ["No details available."];
+    for (const line of explanation.slice(0, 6)) {
+      const li = document.createElement("li");
+      li.textContent = line;
+      list.appendChild(li);
+    }
+    body.appendChild(list);
+    const footer = document.createElement("div");
+    footer.className = "apg-footer";
+    const btnContinue = document.createElement("button");
+    btnContinue.className = "apg-btn apg-btn-primary";
+    btnContinue.textContent = "Got it";
+    btnContinue.addEventListener("click", () => cleanup("continue"));
+    footer.appendChild(btnContinue);
+    modal.appendChild(header);
+    modal.appendChild(body);
+    modal.appendChild(footer);
+    overlay.appendChild(modal);
+    document.body.appendChild(overlay);
+    const previouslyFocused = document.activeElement;
+    const focusables = getFocusable(modal);
+    const initialFocus = btnContinue;
+    initialFocus.focus();
+    function onKeyDown(e) {
+      if (e.key === "Escape") {
+        e.preventDefault();
+        cleanup("continue");
+        return;
+      }
+      if (e.key === "Tab") {
+        const items = getFocusable(modal);
+        if (items.length === 0) return;
+        const first = items[0];
+        const last = items[items.length - 1];
+        const active = document.activeElement;
+        if (e.shiftKey && active === first) {
+          e.preventDefault();
+          last.focus();
+        } else if (!e.shiftKey && active === last) {
+          e.preventDefault();
+          first.focus();
+        }
+      }
+    }
+    document.addEventListener("keydown", onKeyDown, true);
+    function cleanup(choice) {
+      document.removeEventListener("keydown", onKeyDown, true);
+      overlay.remove();
+      if (previouslyFocused && typeof previouslyFocused.focus === "function") {
+        previouslyFocused.focus();
+      }
+      resolve(choice);
+    }
+  });
 }
+export {
+  showWarningModal
+};
+//# sourceMappingURL=modal.js.map

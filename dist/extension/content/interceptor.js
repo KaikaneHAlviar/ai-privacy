@@ -468,7 +468,7 @@
       overlay.id = OVERLAY_ID;
       overlay.addEventListener("mousedown", (e) => {
         if (e.target === overlay) {
-          cleanup("cancel");
+          cleanup("continue");
         }
       });
       const modal = document.createElement("div");
@@ -514,21 +514,11 @@
       body.appendChild(list);
       const footer = document.createElement("div");
       footer.className = "apg-footer";
-      const btnCancel = document.createElement("button");
-      btnCancel.className = "apg-btn";
-      btnCancel.textContent = "Cancel";
-      btnCancel.addEventListener("click", () => cleanup("cancel"));
       const btnContinue = document.createElement("button");
       btnContinue.className = "apg-btn apg-btn-primary";
-      btnContinue.textContent = "Continue anyway";
+      btnContinue.textContent = "Got it";
       btnContinue.addEventListener("click", () => cleanup("continue"));
-      const btnRedact = document.createElement("button");
-      btnRedact.className = "apg-btn apg-btn-danger";
-      btnRedact.textContent = "Redact & continue";
-      btnRedact.addEventListener("click", () => cleanup("redact"));
-      footer.appendChild(btnCancel);
       footer.appendChild(btnContinue);
-      footer.appendChild(btnRedact);
       modal.appendChild(header);
       modal.appendChild(body);
       modal.appendChild(footer);
@@ -536,12 +526,12 @@
       document.body.appendChild(overlay);
       const previouslyFocused = document.activeElement;
       const focusables = getFocusable(modal);
-      const initialFocus = btnCancel;
+      const initialFocus = btnContinue;
       initialFocus.focus();
       function onKeyDown(e) {
         if (e.key === "Escape") {
           e.preventDefault();
-          cleanup("cancel");
+          cleanup("continue");
           return;
         }
         if (e.key === "Tab") {
@@ -615,15 +605,6 @@
     }
     return (_b = el.innerText) != null ? _b : "";
   }
-  function setTextToInput(el, text) {
-    if (el instanceof HTMLTextAreaElement || el instanceof HTMLInputElement) {
-      el.value = text;
-      el.dispatchEvent(new Event("input", { bubbles: true }));
-    } else {
-      el.innerText = text;
-      el.dispatchEvent(new Event("input", { bubbles: true }));
-    }
-  }
   function findActiveAIInput() {
     const active = document.activeElement;
     if (active && isEditableTarget(active) && isVisible(active)) {
@@ -638,59 +619,6 @@
       }
     }
     return null;
-  }
-  function insertTextIntoTextControl(el, insertText) {
-    var _a, _b;
-    const start = (_a = el.selectionStart) != null ? _a : el.value.length;
-    const end = (_b = el.selectionEnd) != null ? _b : el.value.length;
-    const before = el.value.slice(0, start);
-    const after = el.value.slice(end);
-    el.value = before + insertText + after;
-    const newPos = start + insertText.length;
-    el.setSelectionRange(newPos, newPos);
-    el.dispatchEvent(new Event("input", { bubbles: true }));
-  }
-  function insertTextIntoContentEditable(el, insertText) {
-    var _a, _b;
-    const sel = window.getSelection();
-    if (!sel) {
-      el.innerText = ((_a = el.innerText) != null ? _a : "") + insertText;
-      el.dispatchEvent(new Event("input", { bubbles: true }));
-      return;
-    }
-    if (sel.rangeCount === 0 || !el.contains(sel.anchorNode)) {
-      el.focus();
-      el.innerText = ((_b = el.innerText) != null ? _b : "") + insertText;
-      el.dispatchEvent(new Event("input", { bubbles: true }));
-      return;
-    }
-    const range = sel.getRangeAt(0);
-    range.deleteContents();
-    const textNode = document.createTextNode(insertText);
-    range.insertNode(textNode);
-    range.setStartAfter(textNode);
-    range.collapse(true);
-    sel.removeAllRanges();
-    sel.addRange(range);
-    el.dispatchEvent(new Event("input", { bubbles: true }));
-  }
-  function insertTextAtCaret(target, insertText) {
-    if (target instanceof HTMLTextAreaElement || target instanceof HTMLInputElement) {
-      insertTextIntoTextControl(target, insertText);
-      return;
-    }
-    if (target.isContentEditable) {
-      insertTextIntoContentEditable(target, insertText);
-      return;
-    }
-  }
-  function applyNaiveRedaction(original, examples) {
-    if (!examples || examples.length === 0) return original;
-    let redacted = original;
-    for (const ex of examples) {
-      redacted = redacted.split(ex).join("[REDACTED]");
-    }
-    return redacted;
   }
   async function maybeWarn(text, source) {
     const result = scanTextForRisk(text);
@@ -718,38 +646,19 @@
   async function handleTextSubmission(el) {
     const text = getTextFromInput(el);
     if (!text || text.trim().length < 4) return true;
-    const { action, result } = await maybeWarn(text, "send");
-    if (action === "allow" || action === "continue") return true;
-    if (action === "cancel") return false;
-    let redacted = text;
-    for (const hit of result.hits) {
-      redacted = applyNaiveRedaction(redacted, hit.examples);
-    }
-    setTextToInput(el, redacted);
-    return true;
+    const { action } = await maybeWarn(text, "send");
+    return action === "allow" || action === "continue";
   }
   document.addEventListener(
     "paste",
     async (e) => {
-      var _a, _b;
+      var _a;
       if (modalOpen) return;
       const target = e.target;
       if (!target || !isEditableTarget(target)) return;
       const pastedText = (_a = e.clipboardData) == null ? void 0 : _a.getData("text");
       if (!pastedText) return;
-      const { action, result } = await maybeWarn(pastedText, "paste");
-      if (action === "allow") return;
-      e.preventDefault();
-      e.stopPropagation();
-      (_b = e.stopImmediatePropagation) == null ? void 0 : _b.call(e);
-      if (action === "cancel") return;
-      let finalText = pastedText;
-      if (action === "redact") {
-        for (const hit of result.hits) {
-          finalText = applyNaiveRedaction(finalText, hit.examples);
-        }
-      }
-      insertTextAtCaret(target, finalText);
+      await maybeWarn(pastedText, "paste");
     },
     true
     // capture: we want to run before site handlers
@@ -757,7 +666,6 @@
   document.addEventListener(
     "keydown",
     async (e) => {
-      var _a;
       if (modalOpen) return;
       if (e.key !== "Enter") return;
       if (e.shiftKey) return;
@@ -766,12 +674,7 @@
       if (!active) return;
       const focused = document.activeElement;
       if (focused && focused !== active && !active.contains(focused)) return;
-      const shouldContinue = await handleTextSubmission(active);
-      if (!shouldContinue) {
-        e.preventDefault();
-        e.stopPropagation();
-        (_a = e.stopImmediatePropagation) == null ? void 0 : _a.call(e);
-      }
+      await handleTextSubmission(active);
     },
     true
     // capture so we can prevent before app handlers send

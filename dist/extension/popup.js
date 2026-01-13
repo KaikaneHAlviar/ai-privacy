@@ -85,7 +85,7 @@ function renderEmpty(root) {
   );
 }
 function renderDashboard(root, store) {
-  var _a, _b, _c, _d, _e;
+  var _a, _b, _c;
   root.innerHTML = "";
   const header = el("div", { class: "header" }, [
     el("div", {}, [
@@ -97,12 +97,10 @@ function renderDashboard(root, store) {
   ]);
   const totalsBody = el("div", {}, [
     kvRow("Warnings triggered", String(store.warningsTotal)),
-    kvRow("Actions: redact", String((_a = store.byAction.redact) != null ? _a : 0)),
-    kvRow("Actions: continue", String((_b = store.byAction.continue) != null ? _b : 0)),
-    kvRow("Actions: cancel", String((_c = store.byAction.cancel) != null ? _c : 0))
+    kvRow("Actions: continue", String((_a = store.byAction.continue) != null ? _a : 0))
   ]);
-  const topHostsBody = listTop((_d = store.byHost) != null ? _d : {}, UI_LIMITS.MAX_TOP_HOSTS);
-  const topCatsBody = listTop((_e = store.byCategory) != null ? _e : {}, UI_LIMITS.MAX_TOP_CATEGORIES);
+  const topHostsBody = listTop((_b = store.byHost) != null ? _b : {}, UI_LIMITS.MAX_TOP_HOSTS);
+  const topCatsBody = listTop((_c = store.byCategory) != null ? _c : {}, UI_LIMITS.MAX_TOP_CATEGORIES);
   const trendKeys = lastNDaysKeys(UI_LIMITS.MAX_DAILY_POINTS);
   const trendBody = el("div", {}, [
     el("div", { class: "muted small" }, [text(`Last ${trendKeys.length} days`)]),

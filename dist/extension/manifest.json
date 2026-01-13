@@ -1,6 +1,6 @@
 {
   "manifest_version": 3,
-  "name": "ai-privacy-shield",
+  "name": "PromptGuard",
   "description": "On-device protection against accidental sensitive-data leaks to AI chat tools.",
   "version": "0.1.0",
   "permissions": ["storage"],
