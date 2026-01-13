@@ -6,6 +6,7 @@ export const STORAGE_KEYS = {
 /** Supported AI hosts for analytics labeling / display */
 export const SUPPORTED_HOSTS = [
   "chat.openai.com",
+  "chatgpt.com",
   "claude.ai",
   "gemini.google.com",
   "www.perplexity.ai",
