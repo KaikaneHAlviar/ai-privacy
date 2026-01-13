@@ -91,7 +91,7 @@ function renderDashboard(root, store) {
     el("div", {}, [
       el("h1", {}, [text("Privacy Guard \u2014 Analytics")]),
       el("p", { class: "muted" }, [
-        text("Counts only. No prompt content is sto  or transmitted.")
+        text("Counts only. No prompt content is stored or transmitted.")
       ])
     ])
   ]);
